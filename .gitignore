@@ -1,0 +1,19 @@
+# Virtual Environment
+.venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Output Files
+output/
+
+# Extracted JSON
+data/extracted/
+
+# OS Files
+.DS_Store
+Thumbs.db

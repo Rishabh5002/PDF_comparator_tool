@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FormDiff — Offline PDF Comparison</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">FD</div><div><strong>FormDiff</strong><span>Offline PDF Comparison</span></div></div>
+    <div class="secure-pill"><span class="dot"></span> Local processing</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">PRIVATE • OFFLINE • LOCAL</p>
+        <h1>Compare form revisions<br><em>without sending them anywhere.</em></h1>
+        <p class="hero-copy">Upload two revisions of a form. FormDiff extracts the structure, matches logical questions, and reports additions, removals, modifications and reordering locally.</p>
+      </div>
+      <div class="hero-card"><div class="shield">✓</div><div><strong>No cloud AI required</strong><span>PDF content stays on this machine.</span></div></div>
+    </section>
+
+    <section class="workspace">
+      <div class="step-head"><span>01</span><div><h2>Choose revisions</h2><p>Original on the left, revised on the right.</p></div></div>
+      <form id="compareForm">
+        <div class="upload-grid">
+          <label class="dropzone" id="oldDrop">
+            <input type="file" name="old_pdf" accept="application/pdf,.pdf" required>
+            <div class="upload-icon">↑</div><span class="drop-title">Original revision</span><span class="drop-sub">Drop PDF or click to browse</span><strong class="filename"></strong>
+            <div class="password-row"><span>🔒</span><input name="old_password" type="password" placeholder="Password (if protected)" onclick="event.stopPropagation()"></div>
+          </label>
+          <div class="versus">VS</div>
+          <label class="dropzone revised" id="newDrop">
+            <input type="file" name="new_pdf" accept="application/pdf,.pdf" required>
+            <div class="upload-icon">↑</div><span class="drop-title">Revised revision</span><span class="drop-sub">Drop PDF or click to browse</span><strong class="filename"></strong>
+            <div class="password-row"><span>🔒</span><input name="new_password" type="password" placeholder="Password (if protected)" onclick="event.stopPropagation()"></div>
+          </label>
+        </div>
+        <div class="controls">
+          <div><label for="threshold">Match confidence</label><input id="threshold" name="threshold" type="range" min="0.25" max="0.75" step="0.01" value="0.45"><span id="thresholdValue">0.45</span></div>
+          <button class="primary" type="submit"><span>Compare revisions</span><span>→</span></button>
+        </div>
+      </form>
+    </section>
+
+    <section id="loading" class="status-card hidden"><div class="spinner"></div><div><strong>Comparing locally…</strong><span>Extracting, matching and generating reports on this machine.</span></div></section>
+    <section id="error" class="error-card hidden"></section>
+
+    <section id="results" class="results hidden">
+      <div class="results-head"><div><p class="eyebrow">02 • COMPARISON COMPLETE</p><h2>Revision difference summary</h2></div><span class="local-badge">● Offline</span></div>
+      <div class="stats" id="stats"></div>
+
+      <div class="panel comparison-panel">
+        <div class="panel-head"><div><h3>Question-by-question comparison</h3><p class="panel-sub">Matched questions are aligned below. Expand a row to inspect the fields, options and confidence signals.</p></div><span id="matchCount"></span></div>
+        <div class="comparison-toolbar">
+          <div class="filter-tabs" id="filterTabs">
+            <button type="button" class="filter active" data-filter="all">All</button>
+            <button type="button" class="filter" data-filter="changed">Changed</button>
+            <button type="button" class="filter" data-filter="unchanged">Unchanged</button>
+            <button type="button" class="filter" data-filter="unmatched">Added / removed</button>
+          </div>
+          <input id="questionSearch" class="search" type="search" placeholder="Search questions…">
+        </div>
+        <div id="questionPairs" class="question-pairs"></div>
+      </div>
+
+      <div class="result-grid">
+        <div class="panel"><div class="panel-head"><h3>Detected changes</h3><span id="changeCount"></span></div><div id="changes" class="changes"></div></div>
+        <div class="panel"><div class="panel-head"><h3>Document details</h3></div><div id="documents" class="details"></div></div>
+      </div>
+      <div class="panel security-panel"><div class="panel-head"><h3>Privacy & processing</h3><span class="good">Verified local path</span></div><div id="security" class="security-grid"></div></div>
+      <div class="downloads"><strong>Export comparison</strong><div id="downloadLinks"></div></div>
+      <button class="secondary" id="reset">Compare another pair</button>
+    </section>
+  </main>
+
+  <footer><span>FormDiff • local-first application</span><span>Core engine: PyMuPDF + deterministic local matching</span></footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
