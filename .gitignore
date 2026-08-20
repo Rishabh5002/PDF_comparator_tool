@@ -8,8 +8,12 @@ __pycache__/
 # VS Code
 .vscode/
 
+# Runtime/temporary files
+.runtime/
+
 # Output Files
 output/
+final_outputs/
 
 # Extracted JSON
 data/extracted/
