@@ -8,6 +8,33 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 
 
+def _safe_cell(text, max_len=300, style=None):
+    """Truncate cell text and wrap in a Paragraph so ReportLab wraps properly across pages."""
+    if text is None:
+        text_str = ""
+    elif isinstance(text, list):
+        if len(text) > 12:
+            text_str = ", ".join(map(str, text[:12])) + f", ... (+{len(text)-12} more)"
+        else:
+            text_str = ", ".join(map(str, text))
+    else:
+        text_str = str(text)
+
+    if len(text_str) > max_len:
+        text_str = text_str[:max_len] + "..."
+    # Escape HTML special characters for ReportLab Paragraph
+    text_str = text_str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    if style is None:
+        styles = getSampleStyleSheet()
+        style = ParagraphStyle(
+            'SafeCell',
+            parent=styles['Normal'],
+            fontSize=8,
+            leading=10,
+        )
+    return Paragraph(text_str, style)
+
+
 def _text(value):
     if value is None:
         return ""
@@ -43,7 +70,14 @@ def write_pdf_report(payload: dict, output_path: str | Path):
     data = [["Type", "Q", "Original", "Revision", "Details", "Confidence"]]
     for d in payload["comparison"]["differences"]:
         conf = "" if d.get("confidence") is None else f"{d['confidence']:.2f}"
-        data.append([Paragraph(_text(d.get("type")), body), Paragraph(_text(d.get("question_number")), body), Paragraph(_text(d.get("old_value")), body), Paragraph(_text(d.get("new_value")), body), Paragraph(_text(d.get("message")), body), conf])
+        data.append([
+            _safe_cell(d.get("type"), max_len=100, style=body),
+            _safe_cell(d.get("question_number"), max_len=30, style=body),
+            _safe_cell(d.get("old_value"), max_len=300, style=body),
+            _safe_cell(d.get("new_value"), max_len=300, style=body),
+            _safe_cell(d.get("message"), max_len=500, style=body),
+            Paragraph(conf, body) if conf else Paragraph("", body)
+        ])
     t2 = Table(data, repeatRows=1, colWidths=[90, 35, 150, 150, 300, 55])
     t2.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.lightgrey), ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"), ("GRID", (0,0), (-1,-1), 0.4, colors.grey), ("VALIGN", (0,0), (-1,-1), "TOP")]))
     story.append(t2)

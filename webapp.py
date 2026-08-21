@@ -60,12 +60,37 @@ def build_payload(old_path,new_path,old_password,new_password,threshold):
       'evaluation':evaluate_matching(old['questions'],new['questions'],threshold=threshold)}
 
 
-def write_reports(payload,workdir):
-    base=workdir/'comparison'; paths={}
-    jsonp=base.with_suffix('.json'); htmlp=base.with_suffix('.html'); pdfp=base.with_suffix('.pdf'); xlsx=base.with_suffix('.xlsx')
-    jsonp.write_text(json.dumps(payload,indent=2,ensure_ascii=False),encoding='utf-8')
-    write_html_report(payload,htmlp); write_pdf_report(payload,pdfp); write_excel_report(payload,xlsx)
-    return {p.suffix[1:]:p for p in (jsonp,htmlp,pdfp,xlsx)}
+def write_reports(payload, workdir):
+    base = workdir / 'comparison'
+    paths = {}
+    jsonp = base.with_suffix('.json')
+    htmlp = base.with_suffix('.html')
+    pdfp = base.with_suffix('.pdf')
+    xlsx = base.with_suffix('.xlsx')
+    # JSON & HTML are lightweight and safe
+    try:
+        jsonp.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding='utf-8')
+        paths['json'] = jsonp
+    except Exception as e:
+        print(f"JSON report error: {e}")
+    try:
+        write_html_report(payload, htmlp)
+        paths['html'] = htmlp
+    except Exception as e:
+        print(f"HTML report error: {e}")
+    # Safe PDF generation (won't crash the UI if large tables overflow)
+    try:
+        write_pdf_report(payload, pdfp)
+        paths['pdf'] = pdfp
+    except Exception as e:
+        print(f"PDF report generation skipped for large table: {e}")
+    # Safe Excel generation
+    try:
+        write_excel_report(payload, xlsx)
+        paths['xlsx'] = xlsx
+    except Exception as e:
+        print(f"Excel report error: {e}")
+    return paths
 
 
 def parse_multipart(content_type, body):
@@ -88,7 +113,7 @@ def html_page():
 class Handler(BaseHTTPRequestHandler):
     server_version='FormDiff/1.0'
     def _send(self,status,ctype,body,extra=None):
-        if isinstance(body,str): body=body.encode()
+        if isinstance(body,str): body=body.encode('utf-8')
         self.send_response(status); self.send_header('Content-Type',ctype); self.send_header('Content-Length',str(len(body)))
         self.send_header('Cache-Control','no-store')
         if extra:
@@ -97,8 +122,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path=urlparse(self.path).path
         if path=='/': return self._send(200,'text/html; charset=utf-8',html_page())
-        if path=='/static/app.css': return self._send(200,'text/css; charset=utf-8',(BASE_DIR/'static/app.css').read_text())
-        if path=='/static/app.js': return self._send(200,'application/javascript; charset=utf-8',(BASE_DIR/'static/app.js').read_text())
+        if path=='/static/app.css': return self._send(200,'text/css; charset=utf-8',(BASE_DIR/'static/app.css').read_text(encoding='utf-8'))
+        if path=='/static/app.js': return self._send(200,'application/javascript; charset=utf-8',(BASE_DIR/'static/app.js').read_text(encoding='utf-8'))
         if path=='/api/health': return self._json(200,{'status':'ok','mode':'offline','security':security_status(),'offline':verify_offline_core()})
         if path.startswith('/api/report/'):
             bits=path.split('/')

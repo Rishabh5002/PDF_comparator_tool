@@ -38,3 +38,27 @@ def test_pdf_and_excel_reporters_create_files(tmp_path):
     x = write_excel_report(payload(), tmp_path / "report.xlsx")
     assert p.exists() and p.stat().st_size > 0
     assert x.exists() and x.stat().st_size > 0
+
+
+def test_pdf_report_handles_overflowing_content(tmp_path):
+    large_payload = {
+        "old_document": {"filename": "huge_doc_v1.pdf", "pages": 50, "questions": 120},
+        "new_document": {"filename": "huge_doc_v2.pdf", "pages": 50, "questions": 120},
+        "comparison": {
+            "summary": {"total_changes": 20},
+            "differences": [
+                {
+                    "type": "QUESTION_TEXT_CHANGED",
+                    "question_number": i,
+                    "old_value": "Very long content block & text <tag> " * 50,
+                    "new_value": "Revised long content block > another text & details " * 50,
+                    "message": "Extremely detailed diff message " * 40,
+                    "confidence": 0.85,
+                }
+                for i in range(20)
+            ],
+        },
+    }
+    p = write_pdf_report(large_payload, tmp_path / "large_report.pdf")
+    assert p.exists() and p.stat().st_size > 0
+
