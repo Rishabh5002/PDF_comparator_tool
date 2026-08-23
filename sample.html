@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Offline Form PDF Comparison Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 32px;
+            color: #222;
+            line-height: 1.5;
+        }
+
+        h1 {
+            margin-bottom: 4px;
+        }
+
+        h2 {
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        .note {
+            padding: 12px 16px;
+            background: #f2f7f2;
+            border: 1px solid #c8ddc8;
+            border-radius: 6px;
+            margin: 16px 0;
+        }
+
+        ul {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            vertical-align: top;
+            text-align: left;
+        }
+
+        th {
+            background: #f5f5f5;
+        }
+
+        code {
+            background: #f3f3f3;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Form PDF Comparison Report</h1>
+    <p>Processing mode: <strong>Offline / Local</strong></p>
+
+    <div class="note">
+        PDF contents are processed by the local extraction, parsing, matching and comparison pipeline. No external AI
+        service is required for this report.
+    </div>
+
+    <h2>Documents</h2>
+    <p><strong>Original:</strong> <code>sample_v1.pdf</code> (2 pages, 22 questions)</p>
+    <p><strong>Revision:</strong> <code>sample_v2.pdf</code> (5 pages, 18 questions)</p>
+
+    <h2>Summary</h2>
+    <ul>
+        <li><strong>QUESTION_REMOVED</strong>: 3</li>
+        <li><strong>QUESTION_ADDED</strong>: 2</li>
+        <li><strong>OPTIONS_CHANGED</strong>: 2</li>
+        <li><strong>FIELD_TYPE_CHANGED</strong>: 1</li>
+        <li><strong>QUESTION_NUMBER_CHANGED</strong>: 4</li>
+        <li><strong>total_changes</strong>: 12</li>
+    </ul>
+
+    <h2>Differences</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Question</th>
+                <th>Original</th>
+                <th>Revision</th>
+                <th>Details</th>
+                <th>Match Confidence</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>QUESTION_REMOVED</td>
+                <td>5</td>
+                <td>State</td>
+                <td></td>
+                <td>Question 5 was removed: State</td>
+                <td>1.00</td>
+            </tr>
+            <tr>
+                <td>QUESTION_REMOVED</td>
+                <td>8</td>
+                <td>Ethnicity</td>
+                <td></td>
+                <td>Question 8 was removed: Ethnicity</td>
+                <td>1.00</td>
+            </tr>
+            <tr>
+                <td>QUESTION_ADDED</td>
+                <td>5</td>
+                <td></td>
+                <td>State / Territory</td>
+                <td>Question 5 was added: State / Territory</td>
+                <td>1.00</td>
+            </tr>
+            <tr>
+                <td>QUESTION_ADDED</td>
+                <td>10</td>
+                <td></td>
+                <td>Patient’s Mother’s Maiden Name</td>
+                <td>Question 10 was added: Patient’s Mother’s Maiden Name</td>
+                <td>1.00</td>
+            </tr>
+            <tr>
+                <td>OPTIONS_CHANGED</td>
+                <td>4</td>
+                <td>Text input</td>
+                <td>Panama, Ukraine, Bangladesh, Israel, USA, Switzerland, Canada, +237 more</td>
+                <td>Revision exposes 244 options; original revision had no extractable options.</td>
+                <td>0.94</td>
+            </tr>
+            <tr>
+                <td>FIELD_TYPE_CHANGED</td>
+                <td>4</td>
+                <td><code>text</code></td>
+                <td><code>single_choice</code></td>
+                <td>Field type changed from text to single_choice.</td>
+                <td>0.94</td>
+            </tr>
+            <tr>
+                <td>QUESTION_NUMBER_CHANGED</td>
+                <td>8</td>
+                <td>11</td>
+                <td>8</td>
+                <td>Logical question moved from number 11 to 8.</td>
+                <td>0.98</td>
+            </tr>
+            <tr>
+                <td>QUESTION_NUMBER_CHANGED</td>
+                <td>9</td>
+                <td>12</td>
+                <td>9</td>
+                <td>Logical question moved from number 12 to 9.</td>
+                <td>0.98</td>
+            </tr>
+            <tr>
+                <td>QUESTION_NUMBER_CHANGED</td>
+                <td>11</td>
+                <td>14</td>
+                <td>11</td>
+                <td>Logical question moved from number 14 to 11.</td>
+                <td>0.98</td>
+            </tr>
+            <tr>
+                <td>QUESTION_NUMBER_CHANGED</td>
+                <td>12</td>
+                <td>15</td>
+                <td>12</td>
+                <td>Logical question moved from number 15 to 12.</td>
+                <td>0.98</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
