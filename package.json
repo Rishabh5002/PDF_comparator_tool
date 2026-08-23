@@ -1,0 +1,10 @@
+{
+  "name": "pdf-comparator-tool",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "python run_local.py"
+  }
+}

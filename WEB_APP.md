@@ -1,43 +1,61 @@
-# FormDiff Local Web App
+# FormDiff Web Application (React + Python Backend)
 
-## Run
+## Architecture
 
-```bash
-python run_local.py
-```
+- **Frontend**: React + Vite (located in `frontend/`)
+- **Backend**: FastAPI + Uvicorn (located in `backend/` and launched via `run_local.py`)
+- **Engine**: PyMuPDF + deterministic local matching core
 
-Open:
+---
 
-`http://127.0.0.1:8000`
+## Quick Start (Production / Single Server)
 
-The server uses only Python's standard library for the web layer and binds to localhost. The comparison engine remains the existing PyMuPDF/local matcher core.
+1. Build the React frontend:
+   ```bash
+   cd frontend
+   npm install
+   npm run build
+   cd ..
+   ```
 
-## Workflow
+2. Run the local server:
+   ```bash
+   python run_local.py
+   ```
 
-1. Select the original PDF.
-2. Select the revised PDF.
-3. Enter passwords only when a PDF is encrypted.
-4. Adjust the matching threshold if required.
-5. Click **Compare revisions**.
-6. Review added, removed, modified and reordered changes.
-7. Export JSON, HTML, PDF or Excel reports.
+3. Open:
+   `http://127.0.0.1:8000`
 
-## Security boundary
+---
 
-The web application is intended for local use. It binds to `127.0.0.1` and does not call a cloud AI API. Uploaded PDFs are written to a temporary local runtime directory for processing and report generation. A production deployment should add authenticated access, OS-level/network controls, persistent storage policy, retention cleanup, and other enterprise controls as required by the organization.
+## Development Mode
 
-## Question comparison viewer
+Run backend and frontend independently with hot reloading:
 
-The local web UI includes a question-by-question comparison viewer. Each matched question can be expanded to inspect:
+1. **Start Backend API** (Port 8000):
+   ```bash
+   python run_local.py
+   ```
 
-- Original and revised question text
-- Question number changes
-- Field type
-- Extracted options
-- Child-question information
-- Match confidence
-- Local matching signals (text, local vector, options, field, position and neighbour context)
+2. **Start Vite React Dev Server** (Port 5173):
+   ```bash
+   cd frontend
+   npm run dev
+   ```
 
-Unmatched questions are shown explicitly as **Added** or **Removed**. The viewer supports filters for all, changed, unchanged, and unmatched questions, plus text search.
+3. Open:
+   `http://localhost:5173` (requests to `/api/*` are automatically proxied to backend at `http://127.0.0.1:8000`).
 
-The viewer is generated entirely from the local comparison payload; it does not render or upload the source PDF to a remote service.
+---
+
+## Features
+
+- **Local & Offline**: All processing is strictly local.
+- **Dual PDF Drag & Drop**: Drop original and revised PDFs, with encrypted PDF password support.
+- **Adjustable Match Confidence**: Interactive threshold slider.
+- **Dedicated Results View**:
+  - **Detected Differences Tab**: Searchable and filterable (Added, Removed, Modified) with side-by-side diff views.
+  - **Question Alignment Tab**: Side-by-side question comparison with match confidence signals breakdown.
+  - **Overview & Details Tab**: Document metadata, change counts, and offline verification status.
+  - **Multi-format Exports**: Download reports in JSON, HTML, PDF, and Excel.
+  - **Dark / Light Theme**: Seamless toggle with persistent preference.
