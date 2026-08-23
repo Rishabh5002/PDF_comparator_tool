@@ -35,6 +35,13 @@ def validate_pdf_input(path: str | Path, max_size_bytes: int = DEFAULT_MAX_PDF_B
     return pdf_path
 
 
+def _is_package_installed(name: str) -> bool:
+    try:
+        return importlib.util.find_spec(name) is not None
+    except Exception:
+        return False
+
+
 def active_core_network_dependencies() -> list[str]:
     """Return cloud/network packages imported by the active core, if installed.
 
@@ -42,7 +49,7 @@ def active_core_network_dependencies() -> list[str]:
     on the host cannot access a network.
     """
     candidates = ("requests", "httpx", "openai", "google.generativeai", "google.genai")
-    return [name for name in candidates if importlib.util.find_spec(name) is not None]
+    return [name for name in candidates if _is_package_installed(name)]
 
 
 def verify_offline_core() -> dict:

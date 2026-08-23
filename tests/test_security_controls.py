@@ -40,3 +40,9 @@ def test_input_path_is_resolved_and_regular_file(tmp_path):
     path.write_bytes(b"%PDF-1.4")
     resolved = validate_pdf_input(path)
     assert resolved == path.resolve()
+
+
+def test_active_core_network_dependencies_handles_missing_packages():
+    from src.security import active_core_network_dependencies, _is_package_installed
+    assert _is_package_installed("non_existent_package.submodule") is False
+    assert isinstance(active_core_network_dependencies(), list)
