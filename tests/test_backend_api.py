@@ -21,6 +21,14 @@ def test_api_health():
     assert data["mode"] == "offline"
 
 
+def test_favicon():
+    client = TestClient(app)
+    res_ico = client.get("/favicon.ico")
+    assert res_ico.status_code == 200
+    res_svg = client.get("/favicon.svg")
+    assert res_svg.status_code == 200
+
+
 def test_api_compare_and_reports(tmp_path):
     client = TestClient(app)
     pdf1 = tmp_path / "old.pdf"
