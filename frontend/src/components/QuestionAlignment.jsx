@@ -16,12 +16,6 @@ function statusLabel(status) {
   );
 }
 
-function confidenceLabel(score) {
-  if (score >= 0.80) return 'High';
-  if (score >= 0.55) return 'Medium';
-  return 'Low';
-}
-
 function fmtList(value) {
   if (!Array.isArray(value)) return value || '—';
   if (!value.length) return '—';
@@ -106,7 +100,7 @@ export default function QuestionAlignment({ questionPairs = [] }) {
           <div>
             <h3>Question-by-Question Comparison</h3>
             <p className="panel-sub">
-              Matched questions are aligned side-by-side. Expand a row to inspect fields, options and confidence signals.
+              Matched questions are aligned side-by-side. Expand a row to inspect fields, options, and changes.
             </p>
           </div>
           <span id="matchCount">
@@ -163,9 +157,7 @@ export default function QuestionAlignment({ questionPairs = [] }) {
               const status = pairStatus(pair);
               const old = pair.old || {};
               const neu = pair.new || {};
-              const score = Number(pair.score || 0);
               const signal = pair.signals || {};
-              const confidence = pair.matched ? confidenceLabel(score) : '—';
               const title = pair.matched
                 ? `Q${old.number} → Q${neu.number}`
                 : pair.side === 'old'
@@ -185,8 +177,7 @@ export default function QuestionAlignment({ questionPairs = [] }) {
                       <span>{neu.text || '—'}</span>
                     </div>
                     <div className="pair-score">
-                      {confidence}
-                      {pair.matched ? ` · ${score.toFixed(2)}` : ''}
+                      {pair.matched ? 'Matched' : 'Unpaired'}
                     </div>
                   </summary>
                   <div className="pair-body">
@@ -209,10 +200,10 @@ export default function QuestionAlignment({ questionPairs = [] }) {
                     </div>
                     {pair.matched && (
                       <div className="signals">
-                        <strong>Why this matched</strong>
+                        <strong>Match factors</strong>
                         <div className="signal-grid">
                           <SignalItem label="Text" value={signal.text_similarity} />
-                          <SignalItem label="Local vector" value={signal.local_vector_similarity} />
+                          <SignalItem label="Semantic vector" value={signal.local_vector_similarity} />
                           <SignalItem label="Options" value={signal.option_similarity} />
                           <SignalItem label="Field" value={signal.field_similarity} />
                           <SignalItem label="Position" value={signal.position_similarity} />

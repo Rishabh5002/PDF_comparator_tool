@@ -7,26 +7,26 @@ export default function OverviewDetails({ payload = {} }) {
   const security = payload.security || {};
   const total = (payload.comparison?.differences || payload.comparison?.changes || []).length;
 
-  const securityItems = [
+  const metaItems = [
     {
-      title: 'Processing',
-      value: 'Local / offline',
-      subtitle: 'All operations run strictly on your local machine',
+      title: 'Comparison Scope',
+      value: 'Full Document',
+      subtitle: 'Fields, questions, and page text compared',
     },
     {
-      title: 'Cloud AI',
-      value: 'Not required',
-      subtitle: 'Deterministic local parsing & offline similarity',
+      title: 'Detected Differences',
+      value: `${total} differences`,
+      subtitle: 'Classified into additions, removals, modifications & reordering',
     },
     {
-      title: 'PDF logging',
-      value: security.pdf_content_logged ? 'Enabled' : 'Disabled',
-      subtitle: 'No sensitive raw PDF text logged to disk',
+      title: 'Document Protection',
+      value: oldDoc.encrypted || newDoc.encrypted ? 'Password Protected' : 'Standard',
+      subtitle: oldDoc.encrypted || newDoc.encrypted ? 'Authenticated decryption applied' : 'Standard unencrypted PDF files',
     },
     {
-      title: 'Password bypass',
-      value: security.password_bypass_attempted ? 'Attempted' : 'Not attempted',
-      subtitle: 'Standard authenticated decryption',
+      title: 'Matching Method',
+      value: 'Structural Alignment',
+      subtitle: 'Multi-factor question and content mapping',
     },
   ];
 
@@ -59,7 +59,7 @@ export default function OverviewDetails({ payload = {} }) {
                 </div>
               </div>
               <div className="doc-info-card summary-card">
-                <span className="doc-info-label">LOCAL SUMMARY</span>
+                <span className="doc-info-label">COMPARISON SUMMARY</span>
                 <div className="doc-info-val">
                   {summary.summary || summary.text || `${total} differences detected.`}
                 </div>
@@ -71,13 +71,13 @@ export default function OverviewDetails({ payload = {} }) {
         <div className="panel security-panel overview-panel">
           <div className="panel-head">
             <div>
-              <h3>Privacy & Security Verification</h3>
-              <p className="panel-sub">Local processing & confidentiality guarantees.</p>
+              <h3>Comparison Details</h3>
+              <p className="panel-sub">Document properties and analysis specifications.</p>
             </div>
-            <span className="good">Verified local path</span>
+            <span className="good">Complete</span>
           </div>
           <div id="security" className="security-grid-padded">
-            {securityItems.map((item, i) => (
+            {metaItems.map((item, i) => (
               <div key={i} className="security-item">
                 <div className="security-item-head">
                   <strong>{item.title}</strong>

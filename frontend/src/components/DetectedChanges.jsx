@@ -128,11 +128,6 @@ export default function DetectedChanges({ changes = [] }) {
                       <span className={`tag ${tagClass}`}>{typeDisplay}</span>
                       {qNum && <span className="change-q-num">{qNum}</span>}
                     </div>
-                    {d.confidence != null && (
-                      <span className="change-q-num">
-                        Confidence: {(Number(d.confidence) * 100).toFixed(0)}%
-                      </span>
-                    )}
                   </div>
                   <div className="change-card-title">
                     {d.message || d.description || typeDisplay}

@@ -92,8 +92,8 @@ export default function App() {
       </main>
 
       <footer>
-        <span>FormDiff • local-first application</span>
-        <span>Core engine: PyMuPDF + deterministic local matching</span>
+        <span>FormDiff • PDF Comparison & Difference Analysis</span>
+        <span>Intelligent structural and text revision comparison</span>
       </footer>
     </>
   );

@@ -7,7 +7,6 @@ const navBackBtn = document.getElementById('navBackBtn');
 const backToUpload = document.getElementById('backToUpload');
 const resetBtn = document.getElementById('reset');
 const threshold = document.getElementById('threshold');
-const thresholdValue = document.getElementById('thresholdValue');
 const themeToggle = document.getElementById('themeToggle');
 
 let currentPairs = [];
@@ -50,11 +49,6 @@ if (themeToggle) {
   });
 }
 updateThemeUI();
-
-// Threshold slider
-if (threshold && thresholdValue) {
-  threshold.addEventListener('input', () => thresholdValue.textContent = Number(threshold.value).toFixed(2));
-}
 
 // Drag & Drop Upload
 for (const zone of document.querySelectorAll('.dropzone')) {
@@ -109,11 +103,6 @@ function pairStatus(pair) {
 function statusLabel(status) {
   return ({changed:'Changed', unchanged:'Unchanged', removed:'Removed', added:'Added'})[status] || status;
 }
-function confidenceLabel(score) {
-  if (score >= 0.80) return 'High';
-  if (score >= 0.55) return 'Medium';
-  return 'Low';
-}
 
 function renderPairs() {
   const root = document.getElementById('questionPairs');
@@ -133,21 +122,19 @@ function renderPairs() {
     const status = pairStatus(pair);
     const old = pair.old || {};
     const neu = pair.new || {};
-    const score = Number(pair.score || 0);
     const signal = pair.signals || {};
-    const confidence = pair.matched ? confidenceLabel(score) : '—';
     const title = pair.matched ? `Q${esc(old.number)} → Q${esc(neu.number)}` : (pair.side === 'old' ? `Q${esc(old.number)} → Removed` : `Added → Q${esc(neu.number)}`);
     return `<details class="pair-row ${status}" data-index="${idx}">
       <summary>
         <div class="pair-main"><span class="pair-number">${title}</span><span class="pair-status ${status}">${statusLabel(status)}</span></div>
         <div class="pair-preview"><span>${esc(old.text || '—')}</span><b>→</b><span>${esc(neu.text || '—')}</span></div>
-        <div class="pair-score">${confidence}${pair.matched ? ` · ${score.toFixed(2)}` : ''}</div>
+        <div class="pair-score">${pair.matched ? 'Matched' : 'Unpaired'}</div>
       </summary>
       <div class="pair-body">
         <div class="side old-side"><div class="side-title"><span>ORIGINAL</span>${old.number != null ? `<b>Q${esc(old.number)}</b>` : ''}</div><h4>${esc(old.text || 'Question not present')}</h4>${renderQuestionMeta(old)}</div>
         <div class="arrow-column">→</div>
         <div class="side new-side"><div class="side-title"><span>REVISED</span>${neu.number != null ? `<b>Q${esc(neu.number)}</b>` : ''}</div><h4>${esc(neu.text || 'Question not present')}</h4>${renderQuestionMeta(neu)}</div>
-        ${pair.matched ? `<div class="signals"><strong>Why this matched</strong><div class="signal-grid">${signalItem('Text', signal.text_similarity)}${signalItem('Local vector', signal.local_vector_similarity)}${signalItem('Options', signal.option_similarity)}${signalItem('Field', signal.field_similarity)}${signalItem('Position', signal.position_similarity)}${signalItem('Neighbour', signal.neighbor_context)}</div></div>` : ''}
+        ${pair.matched ? `<div class="signals"><strong>Match factors</strong><div class="signal-grid">${signalItem('Text', signal.text_similarity)}${signalItem('Semantic vector', signal.local_vector_similarity)}${signalItem('Options', signal.option_similarity)}${signalItem('Field', signal.field_similarity)}${signalItem('Position', signal.position_similarity)}${signalItem('Neighbour', signal.neighbor_context)}</div></div>` : ''}
       </div>
     </details>`;
   }).join('');
@@ -204,7 +191,6 @@ function renderChanges() {
           <span class="tag ${tagClass}">${esc(typeDisplay)}</span>
           ${qNum ? `<span class="change-q-num">${qNum}</span>` : ''}
         </div>
-        ${d.confidence != null ? `<span class="change-q-num">Confidence: ${(Number(d.confidence)*100).toFixed(0)}%</span>` : ''}
       </div>
       <div class="change-card-title">${esc(d.message || d.description || typeDisplay)}</div>
       ${hasAny ? `<div class="change-diff-grid ${hasBoth ? '' : 'single-col'}">
@@ -252,19 +238,18 @@ function render(payload, reports) {
         <div class="doc-info-sub">${newDoc.pages || 0} pages · ${newDoc.questions || 0} questions ${newDoc.encrypted ? '· Encrypted' : ''}</div>
       </div>
       <div class="doc-info-card summary-card">
-        <span class="doc-info-label">LOCAL SUMMARY</span>
+        <span class="doc-info-label">COMPARISON SUMMARY</span>
         <div class="doc-info-val">${esc(summary.summary || summary.text || `${total} differences detected.`)}</div>
       </div>
     </div>
   `;
   
-  // Padded Security Verification Grid (Emojiless)
-  const s = payload.security || {};
+  // Padded Comparison Details Grid
   document.getElementById('security').innerHTML = [
-    ['Processing', 'Local / offline', 'All operations run strictly on your local machine'],
-    ['Cloud AI', 'Not required', 'Deterministic local parsing & offline similarity'],
-    ['PDF logging', s.pdf_content_logged ? 'Enabled' : 'Disabled', 'No sensitive raw PDF text logged to disk'],
-    ['Password bypass', s.password_bypass_attempted ? 'Attempted' : 'Not attempted', 'Standard authenticated decryption']
+    ['Comparison Scope', 'Full Document', 'Fields, questions, and page text compared'],
+    ['Detected Differences', `${total} differences`, 'Classified into additions, removals, modifications & reordering'],
+    ['Document Protection', (oldDoc.encrypted || newDoc.encrypted) ? 'Protected' : 'Standard', (oldDoc.encrypted || newDoc.encrypted) ? 'Authenticated decryption applied' : 'Standard unencrypted PDF files'],
+    ['Matching Method', 'Structural Alignment', 'Multi-factor question and content mapping']
   ].map(x => `
     <div class="security-item">
       <div class="security-item-head">
@@ -303,8 +288,7 @@ function switchToUpload() {
   setupView.classList.remove('hidden');
   form.reset();
   document.querySelectorAll('.filename').forEach(x => x.textContent = '');
-  threshold.value = '0.45';
-  thresholdValue.textContent = '0.45';
+  if (threshold) threshold.value = '0.45';
   currentPairs = [];
   currentChanges = [];
   currentFilter = 'all';

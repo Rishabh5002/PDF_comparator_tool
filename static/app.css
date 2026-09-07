@@ -460,6 +460,11 @@ body {
   gap: 10px;
 }
 
+.controls-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .controls label {
   font-size: 12px;
   font-weight: 600;

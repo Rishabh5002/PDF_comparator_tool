@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FormDiff — Offline PDF Comparison</title>
+  <title>FormDiff — PDF Comparison Tool</title>
   <link rel="stylesheet" href="/static/app.css">
   <script>
     // Inline script to prevent theme flash
@@ -21,7 +21,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">FD</div>
-      <div><strong>FormDiff</strong><span>Offline PDF Comparison</span></div>
+      <div><strong>FormDiff</strong><span>PDF Document Comparison</span></div>
     </div>
     <div class="topbar-actions">
       <button id="themeToggle" class="theme-toggle-btn" type="button" title="Toggle theme" aria-label="Toggle theme">
@@ -31,24 +31,24 @@
         <span class="theme-label" id="themeLabel">Dark</span>
       </button>
       <button id="navBackBtn" class="nav-back-btn hidden" type="button">New Comparison</button>
-      <div class="secure-pill"><span class="dot"></span> Local processing</div>
+      <div class="secure-pill"><span class="dot"></span> Ready</div>
     </div>
   </header>
 
   <main class="shell">
     <!-- VIEW 1: UPLOAD & SETUP -->
     <div id="setupView">
-      <section class="hero">
+      <section className="hero" class="hero">
         <div>
-          <p class="eyebrow">PRIVATE • OFFLINE • LOCAL</p>
-          <h1>Compare form revisions<br><em>without sending them anywhere.</em></h1>
-          <p class="hero-copy">Upload two revisions of a form. FormDiff extracts the structure, matches logical questions, and reports additions, removals, modifications and reordering locally.</p>
+          <p class="eyebrow">SMART PDF COMPARISON</p>
+          <h1>Compare PDF revisions<br><em>side by side with precision.</em></h1>
+          <p class="hero-copy">Upload two revisions of a PDF form or document. FormDiff extracts the structure, aligns matching questions and fields, and highlights additions, removals, and modifications.</p>
         </div>
         <div class="hero-card">
           <div class="shield">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
-          <div><strong>No cloud AI required</strong><span>PDF content stays on this machine.</span></div>
+          <div><strong>Automated Comparison</strong><span>Detailed side-by-side field and text difference analysis.</span></div>
         </div>
       </section>
 
@@ -89,7 +89,8 @@
             </label>
           </div>
           <div class="controls">
-            <div><label for="threshold">Match confidence</label><input id="threshold" name="threshold" type="range" min="0.25" max="0.75" step="0.01" value="0.45"><span id="thresholdValue">0.45</span></div>
+            <input type="hidden" id="threshold" name="threshold" value="0.45">
+            <div class="controls-hint"><span>Ready to analyze changes across form fields and text.</span></div>
             <button class="primary" type="submit"><span>Compare revisions</span><span>→</span></button>
           </div>
         </form>
@@ -97,7 +98,7 @@
     </div>
 
     <!-- LOADING & ERROR STATES -->
-    <section id="loading" class="status-card hidden"><div class="spinner"></div><div><strong>Comparing locally…</strong><span>Extracting, matching and generating reports on this machine.</span></div></section>
+    <section id="loading" class="status-card hidden"><div class="spinner"></div><div><strong>Comparing documents…</strong><span>Extracting structure and analyzing revisions.</span></div></section>
     <section id="error" class="error-card hidden"></section>
 
     <!-- VIEW 2: DEDICATED RESULTS PAGE -->
@@ -165,7 +166,7 @@
           <div class="panel-head">
             <div>
               <h3>Question-by-Question Comparison</h3>
-              <p class="panel-sub">Matched questions are aligned side-by-side. Expand a row to inspect fields, options and confidence signals.</p>
+              <p class="panel-sub">Matched questions are aligned side-by-side. Expand a row to inspect fields, options, and changes.</p>
             </div>
             <span id="matchCount"></span>
           </div>
@@ -197,10 +198,10 @@
           <div class="panel security-panel overview-panel">
             <div class="panel-head">
               <div>
-                <h3>Privacy & Security Verification</h3>
-                <p class="panel-sub">Local processing & confidentiality guarantees.</p>
+                <h3>Comparison Details</h3>
+                <p class="panel-sub">Document properties and analysis specifications.</p>
               </div>
-              <span class="good">Verified local path</span>
+              <span class="good">Complete</span>
             </div>
             <div id="security" class="security-grid-padded"></div>
           </div>
@@ -214,8 +215,8 @@
   </main>
 
   <footer>
-    <span>FormDiff • local-first application</span>
-    <span>Core engine: PyMuPDF + deterministic local matching</span>
+    <span>FormDiff • PDF Comparison & Difference Analysis</span>
+    <span>Intelligent structural and text revision comparison</span>
   </footer>
   <script src="/static/app.js"></script>
 </body>

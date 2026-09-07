@@ -10,7 +10,7 @@ export default function SetupView({
   const [newFile, setNewFile] = useState(null);
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [threshold, setThreshold] = useState(0.45);
+  const threshold = 0.45;
 
   const [oldDrag, setOldDrag] = useState(false);
   const [newDrag, setNewDrag] = useState(false);
@@ -50,13 +50,13 @@ export default function SetupView({
     <div id="setupView">
       <section className="hero">
         <div>
-          <p className="eyebrow">PRIVATE • OFFLINE • LOCAL</p>
+          <p className="eyebrow">SMART PDF COMPARISON</p>
           <h1>
-            Compare form revisions<br />
-            <em>without sending them anywhere.</em>
+            Compare PDF revisions<br />
+            <em>side by side with precision.</em>
           </h1>
           <p className="hero-copy">
-            Upload two revisions of a form. FormDiff extracts the structure, matches logical questions, and reports additions, removals, modifications and reordering locally.
+            Upload two revisions of a PDF form or document. FormDiff extracts the structure, aligns matching questions and fields, and highlights additions, removals, and modifications.
           </p>
         </div>
         <div className="hero-card">
@@ -64,8 +64,8 @@ export default function SetupView({
             <ShieldIcon />
           </div>
           <div>
-            <strong>No cloud AI required</strong>
-            <span>PDF content stays on this machine.</span>
+            <strong>Automated Comparison</strong>
+            <span>Detailed side-by-side field and text difference analysis.</span>
           </div>
         </div>
       </section>
@@ -154,19 +154,8 @@ export default function SetupView({
           </div>
 
           <div className="controls">
-            <div>
-              <label htmlFor="threshold">Match confidence</label>
-              <input
-                id="threshold"
-                name="threshold"
-                type="range"
-                min="0.25"
-                max="0.75"
-                step="0.01"
-                value={threshold}
-                onChange={(e) => setThreshold(parseFloat(e.target.value))}
-              />
-              <span id="thresholdValue">{threshold.toFixed(2)}</span>
+            <div className="controls-hint">
+              <span>Ready to analyze changes across form fields and text.</span>
             </div>
             <button className="primary" type="submit" disabled={isLoading}>
               <span>Compare revisions</span>
@@ -180,8 +169,8 @@ export default function SetupView({
         <section id="loading" className="status-card">
           <div className="spinner"></div>
           <div>
-            <strong>Comparing locally…</strong>
-            <span>Extracting, matching and generating reports on this machine.</span>
+            <strong>Comparing documents…</strong>
+            <span>Extracting structure and analyzing revisions.</span>
           </div>
         </section>
       )}

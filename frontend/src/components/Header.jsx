@@ -8,7 +8,7 @@ export default function Header({ theme, onToggleTheme, showNewComparison, onNewC
         <div className="brand-mark">FD</div>
         <div>
           <strong>FormDiff</strong>
-          <span>Offline PDF Comparison</span>
+          <span>PDF Document Comparison</span>
         </div>
       </div>
       <div className="topbar-actions">
@@ -40,7 +40,7 @@ export default function Header({ theme, onToggleTheme, showNewComparison, onNewC
         )}
 
         <div className="secure-pill">
-          <span className="dot"></span> Local processing
+          <span className="dot"></span> Ready
         </div>
       </div>
     </header>
