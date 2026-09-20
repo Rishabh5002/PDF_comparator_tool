@@ -21,7 +21,9 @@ class ComparisonResult:
             "differences": [
                 {
                     "type": d.difference_type,
+                    "category": getattr(d, "category", "modified"),
                     "question_number": d.question_number,
+                    "section_number": d.question_number,
                     "old_value": d.old_value,
                     "new_value": d.new_value,
                     "message": d.message,

@@ -72,7 +72,7 @@ export default function App() {
         onNewComparison={handleReset}
       />
 
-      <main className="shell">
+      <main className={`shell ${view === 'results' ? 'shell-wide' : ''}`}>
         {view === 'setup' && (
           <SetupView
             onCompare={handleCompare}

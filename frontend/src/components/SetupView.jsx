@@ -56,7 +56,7 @@ export default function SetupView({
             <em>side by side with precision.</em>
           </h1>
           <p className="hero-copy">
-            Upload two revisions of a PDF form or document. FormDiff extracts the structure, aligns matching questions and fields, and highlights additions, removals, and modifications.
+            Upload two revisions of any PDF document, form, or agreement. FormDiff extracts the structure, aligns matching sections and text, and highlights additions, removals, and modifications.
           </p>
         </div>
         <div className="hero-card">

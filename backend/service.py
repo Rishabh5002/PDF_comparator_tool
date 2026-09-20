@@ -874,6 +874,141 @@ def _create_highlighted_pdfs(
 
 
 # ============================================================
+# GITHUB-STYLE SIDE-BY-SIDE SEQUENCE DIFF
+# ============================================================
+
+
+def _clean_diff_line(text: str) -> str:
+    text = (text or "").replace("\xa0", " ").replace("\xad", "-")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _compute_word_diff(old_text: str, new_text: str):
+    words_old = re.findall(r"\S+|\s+", old_text)
+    words_new = re.findall(r"\S+|\s+", new_text)
+    sm = difflib.SequenceMatcher(None, words_old, words_new)
+    old_chunks = []
+    new_chunks = []
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        sub_old = "".join(words_old[i1:i2])
+        sub_new = "".join(words_new[j1:j2])
+        if tag == "equal":
+            if sub_old:
+                old_chunks.append({"type": "equal", "text": sub_old})
+            if sub_new:
+                new_chunks.append({"type": "equal", "text": sub_new})
+        elif tag == "delete":
+            if sub_old:
+                old_chunks.append({"type": "del", "text": sub_old})
+        elif tag == "insert":
+            if sub_new:
+                new_chunks.append({"type": "add", "text": sub_new})
+        elif tag == "replace":
+            if sub_old:
+                old_chunks.append({"type": "del", "text": sub_old})
+            if sub_new:
+                new_chunks.append({"type": "add", "text": sub_new})
+    return {"old_chunks": old_chunks, "new_chunks": new_chunks}
+
+
+def build_side_by_side_diff(old_elements, new_elements):
+    from src.parser.form_parser import build_visual_rows
+    from src.matcher import text_similarity
+
+    v_rows1 = build_visual_rows(old_elements or [])
+    v_rows2 = build_visual_rows(new_elements or [])
+
+    lines1 = []
+    for r in v_rows1:
+        txt = _clean_diff_line(r.get_text())
+        if txt:
+            lines1.append({
+                "line_no": len(lines1) + 1,
+                "page": r.page_number + 1,
+                "y": round(r.y0, 1),
+                "text": txt,
+            })
+
+    lines2 = []
+    for r in v_rows2:
+        txt = _clean_diff_line(r.get_text())
+        if txt:
+            lines2.append({
+                "line_no": len(lines2) + 1,
+                "page": r.page_number + 1,
+                "y": round(r.y0, 1),
+                "text": txt,
+            })
+
+    M, N = len(lines1), len(lines2)
+    GAP = -0.5
+    dp = [[0.0] * (N + 1) for _ in range(M + 1)]
+    for i in range(M + 1):
+        dp[i][0] = i * GAP
+    for j in range(N + 1):
+        dp[0][j] = j * GAP
+
+    for i in range(1, M + 1):
+        t1 = lines1[i - 1]["text"]
+        for j in range(1, N + 1):
+            t2 = lines2[j - 1]["text"]
+            sim = text_similarity(t1, t2)
+            if sim >= 0.90:
+                score = 3.0
+            elif sim >= 0.40:
+                score = 2.5 * sim - 0.5
+            else:
+                score = -1.5
+
+            dp[i][j] = max(
+                dp[i - 1][j - 1] + score,
+                dp[i - 1][j] + GAP,
+                dp[i][j - 1] + GAP,
+            )
+
+    aligned = []
+    i, j = M, N
+    while i > 0 or j > 0:
+        if i > 0 and j > 0:
+            t1 = lines1[i - 1]["text"]
+            t2 = lines2[j - 1]["text"]
+            sim = text_similarity(t1, t2)
+            score = 3.0 if sim >= 0.90 else (2.5 * sim - 0.5 if sim >= 0.40 else -1.5)
+            if abs(dp[i][j] - (dp[i - 1][j - 1] + score)) < 1e-4:
+                kind = "unchanged" if sim >= 0.95 else "modified"
+                word_diff = _compute_word_diff(t1, t2) if kind == "modified" else None
+                aligned.append({
+                    "status": kind,
+                    "similarity": round(sim, 2),
+                    "old": lines1[i - 1],
+                    "new": lines2[j - 1],
+                    "word_diff": word_diff,
+                })
+                i -= 1
+                j -= 1
+                continue
+        if i > 0 and abs(dp[i][j] - (dp[i - 1][j] + GAP)) < 1e-4:
+            aligned.append({
+                "status": "deleted",
+                "old": lines1[i - 1],
+                "new": None,
+                "word_diff": None,
+            })
+            i -= 1
+        else:
+            aligned.append({
+                "status": "added",
+                "old": None,
+                "new": lines2[j - 1],
+                "word_diff": None,
+            })
+            j -= 1
+
+    aligned.reverse()
+    return aligned
+
+
+# ============================================================
 # EXISTING COMPARISON PAYLOAD
 # ============================================================
 
@@ -905,6 +1040,11 @@ def build_payload(
         new["questions"],
     )
 
+    side_by_side = build_side_by_side_diff(
+        old.get("all_text_elements"),
+        new.get("all_text_elements"),
+    )
+
     return {
 
         "mode": "offline",
@@ -918,22 +1058,24 @@ def build_payload(
         "old_document": {
             "filename": old["filename"],
             "pages": old["page_count"],
-            "questions": len(
-                old["questions"]
-            ),
+            "questions": len(old["questions"]),
+            "sections": len(old["questions"]),
+            "items": len(old["questions"]),
             "encrypted": old["encrypted"],
         },
 
         "new_document": {
             "filename": new["filename"],
             "pages": new["page_count"],
-            "questions": len(
-                new["questions"]
-            ),
+            "questions": len(new["questions"]),
+            "sections": len(new["questions"]),
+            "items": len(new["questions"]),
             "encrypted": new["encrypted"],
         },
 
         "comparison": result.to_dict(),
+
+        "side_by_side_diff": side_by_side,
 
         "local_summary": (
             build_local_summary(

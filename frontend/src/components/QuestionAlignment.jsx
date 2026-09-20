@@ -29,23 +29,23 @@ function fmtList(value) {
   );
 }
 
-function QuestionMeta({ q }) {
+function SectionMeta({ q }) {
   return (
     <div className="meta-grid">
       <div>
-        <span>Field type</span>
-        <b>{q.field_type || 'Unknown'}</b>
+        <span>Field / Type</span>
+        <b>{q.field_type || 'Text / Section'}</b>
       </div>
       <div>
         <span>Page</span>
         <b>{q.page ?? '—'}</b>
       </div>
       <div className="wide">
-        <span>Options</span>
+        <span>Options / Elements</span>
         <div className="option-list">{fmtList(q.options)}</div>
       </div>
       <div className="wide">
-        <span>Child questions</span>
+        <span>Sub-items / Child content</span>
         <div className="option-list">{fmtList(q.child_questions)}</div>
       </div>
     </div>
@@ -98,13 +98,13 @@ export default function QuestionAlignment({ questionPairs = [] }) {
       <div className="panel comparison-panel">
         <div className="panel-head">
           <div>
-            <h3>Question-by-Question Comparison</h3>
+            <h3>Section & Content Alignment</h3>
             <p className="panel-sub">
-              Matched questions are aligned side-by-side. Expand a row to inspect fields, options, and changes.
+              Matched document sections and items are aligned side-by-side. Expand a row to inspect fields, options, and changes.
             </p>
           </div>
           <span id="matchCount">
-            {matchedCount} matched · {unmatchedCount} unmatched
+            {matchedCount} matched · {unmatchedCount} unpaired
           </span>
         </div>
 
@@ -143,7 +143,7 @@ export default function QuestionAlignment({ questionPairs = [] }) {
             id="questionSearch"
             className="search"
             type="search"
-            placeholder="Search questions…"
+            placeholder="Search sections or text…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -151,7 +151,7 @@ export default function QuestionAlignment({ questionPairs = [] }) {
 
         <div id="questionPairs" className="question-pairs">
           {filteredPairs.length === 0 ? (
-            <div className="empty-state">No questions match the current filter.</div>
+            <div className="empty-state">No sections match the current filter.</div>
           ) : (
             filteredPairs.map((pair, idx) => {
               const status = pairStatus(pair);
@@ -159,10 +159,10 @@ export default function QuestionAlignment({ questionPairs = [] }) {
               const neu = pair.new || {};
               const signal = pair.signals || {};
               const title = pair.matched
-                ? `Q${old.number} → Q${neu.number}`
+                ? `Sec ${old.number} → Sec ${neu.number}`
                 : pair.side === 'old'
-                ? `Q${old.number} → Removed`
-                : `Added → Q${neu.number}`;
+                ? `Sec ${old.number} → Removed`
+                : `Added → Sec ${neu.number}`;
 
               return (
                 <details key={idx} className={`pair-row ${status}`}>
@@ -184,19 +184,19 @@ export default function QuestionAlignment({ questionPairs = [] }) {
                     <div className="side old-side">
                       <div className="side-title">
                         <span>ORIGINAL</span>
-                        {old.number != null && <b>Q{old.number}</b>}
+                        {old.number != null && <b>Sec {old.number}</b>}
                       </div>
-                      <h4>{old.text || 'Question not present'}</h4>
-                      <QuestionMeta q={old} />
+                      <h4>{old.text || 'Section not present in original'}</h4>
+                      <SectionMeta q={old} />
                     </div>
                     <div className="arrow-column">→</div>
                     <div className="side new-side">
                       <div className="side-title">
                         <span>REVISED</span>
-                        {neu.number != null && <b>Q{neu.number}</b>}
+                        {neu.number != null && <b>Sec {neu.number}</b>}
                       </div>
-                      <h4>{neu.text || 'Question not present'}</h4>
-                      <QuestionMeta q={neu} />
+                      <h4>{neu.text || 'Section not present in revised'}</h4>
+                      <SectionMeta q={neu} />
                     </div>
                     {pair.matched && (
                       <div className="signals">

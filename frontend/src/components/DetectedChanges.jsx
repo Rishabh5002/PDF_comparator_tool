@@ -12,6 +12,33 @@ function formatDiffText(val) {
   return String(val);
 }
 
+export function getDifferenceCategory(d) {
+  if (d.category) {
+    if (d.category === 'removed') return 'removed';
+    if (d.category === 'added') return 'added';
+    return 'modified';
+  }
+  const type = String(d.type || d.change_type || '').toUpperCase();
+  // Pure removal of an entire section or document element
+  if (type === 'QUESTION_REMOVED' || type === 'SECTION_REMOVED' || type === 'CONTENT_REMOVED' || type === 'REMOVED') {
+    return 'removed';
+  }
+  // Pure addition of an entire section or document element
+  if (type === 'QUESTION_ADDED' || type === 'SECTION_ADDED' || type === 'CONTENT_ADDED' || type === 'ADDED') {
+    return 'added';
+  }
+  // If only old value exists and it's not a partial option modification
+  if (d.old_value != null && d.new_value == null && !type.includes('OPTION')) {
+    return 'removed';
+  }
+  // If only new value exists and it's not a partial option modification
+  if (d.new_value != null && d.old_value == null && !type.includes('OPTION')) {
+    return 'added';
+  }
+  // Everything else (e.g. OPTIONS_REMOVED, OPTIONS_ADDED, TEXT_CHANGED, etc.) is a modification
+  return 'modified';
+}
+
 export default function DetectedChanges({ changes = [] }) {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -19,19 +46,21 @@ export default function DetectedChanges({ changes = [] }) {
   const filteredChanges = useMemo(() => {
     const q = search.trim().toLowerCase();
     return changes.filter((d) => {
-      const type = String(d.type || d.change_type || '').toLowerCase();
-      if (filter === 'added' && !type.includes('added')) return false;
-      if (filter === 'removed' && !type.includes('removed')) return false;
-      if (filter === 'changed' && (type.includes('added') || type.includes('removed'))) return false;
+      const cat = getDifferenceCategory(d);
+      if (filter === 'added' && cat !== 'added') return false;
+      if (filter === 'removed' && cat !== 'removed') return false;
+      if (filter === 'changed' && cat !== 'modified') return false;
       if (!q) return true;
 
       const oldText = formatDiffText(d.old_value ?? d.old_text ?? d.old_question ?? '');
       const newText = formatDiffText(d.new_value ?? d.new_text ?? d.new_question ?? '');
+      const secNum = d.section_number ?? d.question_number ?? d.question ?? '';
       const hay = [
-        type,
+        d.type,
+        d.change_type,
         d.message,
         d.description,
-        d.question_number,
+        secNum,
         oldText,
         newText,
       ].join(' ').toLowerCase();
@@ -104,19 +133,20 @@ export default function DetectedChanges({ changes = [] }) {
           ) : (
             filteredChanges.map((d, index) => {
               const rawType = String(d.type || d.change_type || 'CHANGE');
-              const typeDisplay = rawType.replaceAll('_', ' ');
-              const tagClass = rawType.toLowerCase().includes('added')
-                ? 'added'
-                : rawType.toLowerCase().includes('removed')
-                ? 'removed'
-                : 'changed';
+              const typeDisplay = rawType
+                .replaceAll('QUESTION_', 'SECTION_')
+                .replaceAll('_', ' ');
+              const cat = getDifferenceCategory(d);
+              const tagClass = cat === 'added' ? 'added' : cat === 'removed' ? 'removed' : 'changed';
               const oldVal = formatDiffText(d.old_value ?? d.old_text ?? d.old_question);
               const newVal = formatDiffText(d.new_value ?? d.new_text ?? d.new_question);
-              const qNum =
-                d.question_number != null
-                  ? `Question #${d.question_number}`
+              const secNum =
+                d.section_number != null
+                  ? `Section #${d.section_number}`
+                  : d.question_number != null
+                  ? `Section #${d.question_number}`
                   : d.question != null
-                  ? `Question #${d.question}`
+                  ? `Section #${d.question}`
                   : '';
               const hasBoth = Boolean(oldVal && newVal);
               const hasAny = Boolean(oldVal || newVal);
@@ -126,7 +156,7 @@ export default function DetectedChanges({ changes = [] }) {
                   <div className="change-card-header">
                     <div className="change-card-tags">
                       <span className={`tag ${tagClass}`}>{typeDisplay}</span>
-                      {qNum && <span className="change-q-num">{qNum}</span>}
+                      {secNum && <span className="change-q-num">{secNum}</span>}
                     </div>
                   </div>
                   <div className="change-card-title">

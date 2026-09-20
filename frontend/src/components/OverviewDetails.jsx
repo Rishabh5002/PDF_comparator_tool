@@ -11,7 +11,7 @@ export default function OverviewDetails({ payload = {} }) {
     {
       title: 'Comparison Scope',
       value: 'Full Document',
-      subtitle: 'Fields, questions, and page text compared',
+      subtitle: 'Sections, fields, and full document text compared',
     },
     {
       title: 'Detected Differences',
@@ -26,7 +26,7 @@ export default function OverviewDetails({ payload = {} }) {
     {
       title: 'Matching Method',
       value: 'Structural Alignment',
-      subtitle: 'Multi-factor question and content mapping',
+      subtitle: 'Multi-factor section and content mapping',
     },
   ];
 
@@ -46,7 +46,7 @@ export default function OverviewDetails({ payload = {} }) {
                 <span className="doc-info-label">ORIGINAL REVISION</span>
                 <div className="doc-info-val">{oldDoc.filename || '—'}</div>
                 <div className="doc-info-sub">
-                  {oldDoc.pages || 0} pages · {oldDoc.questions || 0} questions{' '}
+                  {oldDoc.pages || 0} pages · {oldDoc.sections ?? oldDoc.questions ?? 0} sections{' '}
                   {oldDoc.encrypted ? '· Encrypted' : ''}
                 </div>
               </div>
@@ -54,7 +54,7 @@ export default function OverviewDetails({ payload = {} }) {
                 <span className="doc-info-label">REVISED REVISION</span>
                 <div className="doc-info-val">{newDoc.filename || '—'}</div>
                 <div className="doc-info-sub">
-                  {newDoc.pages || 0} pages · {newDoc.questions || 0} questions{' '}
+                  {newDoc.pages || 0} pages · {newDoc.sections ?? newDoc.questions ?? 0} sections{' '}
                   {newDoc.encrypted ? '· Encrypted' : ''}
                 </div>
               </div>

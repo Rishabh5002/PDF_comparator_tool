@@ -115,7 +115,7 @@ function renderPairs() {
     return hay.includes(q);
   });
   if (!filtered.length) {
-    root.innerHTML = '<div class="empty-state">No questions match the current filter.</div>';
+    root.innerHTML = '<div class="empty-state">No sections match the current filter.</div>';
     return;
   }
   root.innerHTML = filtered.map((pair, idx) => {
@@ -123,7 +123,7 @@ function renderPairs() {
     const old = pair.old || {};
     const neu = pair.new || {};
     const signal = pair.signals || {};
-    const title = pair.matched ? `Q${esc(old.number)} → Q${esc(neu.number)}` : (pair.side === 'old' ? `Q${esc(old.number)} → Removed` : `Added → Q${esc(neu.number)}`);
+    const title = pair.matched ? `Sec ${esc(old.number)} → Sec ${esc(neu.number)}` : (pair.side === 'old' ? `Sec ${esc(old.number)} → Removed` : `Added → Sec ${esc(neu.number)}`);
     return `<details class="pair-row ${status}" data-index="${idx}">
       <summary>
         <div class="pair-main"><span class="pair-number">${title}</span><span class="pair-status ${status}">${statusLabel(status)}</span></div>
@@ -131,9 +131,9 @@ function renderPairs() {
         <div class="pair-score">${pair.matched ? 'Matched' : 'Unpaired'}</div>
       </summary>
       <div class="pair-body">
-        <div class="side old-side"><div class="side-title"><span>ORIGINAL</span>${old.number != null ? `<b>Q${esc(old.number)}</b>` : ''}</div><h4>${esc(old.text || 'Question not present')}</h4>${renderQuestionMeta(old)}</div>
+        <div class="side old-side"><div class="side-title"><span>ORIGINAL</span>${old.number != null ? `<b>Sec ${esc(old.number)}</b>` : ''}</div><h4>${esc(old.text || 'Section not present in original')}</h4>${renderQuestionMeta(old)}</div>
         <div class="arrow-column">→</div>
-        <div class="side new-side"><div class="side-title"><span>REVISED</span>${neu.number != null ? `<b>Q${esc(neu.number)}</b>` : ''}</div><h4>${esc(neu.text || 'Question not present')}</h4>${renderQuestionMeta(neu)}</div>
+        <div class="side new-side"><div class="side-title"><span>REVISED</span>${neu.number != null ? `<b>Sec ${esc(neu.number)}</b>` : ''}</div><h4>${esc(neu.text || 'Section not present in revised')}</h4>${renderQuestionMeta(neu)}</div>
         ${pair.matched ? `<div class="signals"><strong>Match factors</strong><div class="signal-grid">${signalItem('Text', signal.text_similarity)}${signalItem('Semantic vector', signal.local_vector_similarity)}${signalItem('Options', signal.option_similarity)}${signalItem('Field', signal.field_similarity)}${signalItem('Position', signal.position_similarity)}${signalItem('Neighbour', signal.neighbor_context)}</div></div>` : ''}
       </div>
     </details>`;
@@ -142,7 +142,7 @@ function renderPairs() {
 
 function signalItem(label, value) { return `<div><span>${esc(label)}</span><b>${Number(value || 0).toFixed(2)}</b></div>`; }
 function renderQuestionMeta(q) {
-  return `<div class="meta-grid"><div><span>Field type</span><b>${esc(q.field_type || 'Unknown')}</b></div><div><span>Page</span><b>${q.page ?? '—'}</b></div><div class="wide"><span>Options</span><div class="option-list">${fmtList(q.options)}</div></div><div class="wide"><span>Child questions</span><div class="option-list">${fmtList(q.child_questions)}</div></div></div>`;
+  return `<div class="meta-grid"><div><span>Field / Type</span><b>${esc(q.field_type || 'Text / Section')}</b></div><div><span>Page</span><b>${q.page ?? '—'}</b></div><div class="wide"><span>Options / Elements</span><div class="option-list">${fmtList(q.options)}</div></div><div class="wide"><span>Sub-items / Child content</span><div class="option-list">${fmtList(q.child_questions)}</div></div></div>`;
 }
 
 function formatDiffText(val) {
@@ -153,18 +153,29 @@ function formatDiffText(val) {
   return String(val);
 }
 
+function getDifferenceCategory(d) {
+  if (d.category) return d.category;
+  const type = String(d.type || d.change_type || '').toUpperCase();
+  if (type === 'QUESTION_REMOVED' || type === 'SECTION_REMOVED' || type === 'CONTENT_REMOVED' || type === 'REMOVED') return 'removed';
+  if (type === 'QUESTION_ADDED' || type === 'SECTION_ADDED' || type === 'CONTENT_ADDED' || type === 'ADDED') return 'added';
+  if (d.old_value != null && d.new_value == null && !type.includes('OPTION')) return 'removed';
+  if (d.new_value != null && d.old_value == null && !type.includes('OPTION')) return 'added';
+  return 'modified';
+}
+
 function renderChanges() {
   const root = document.getElementById('changes');
   const q = currentChangeSearch.trim().toLowerCase();
   const filtered = currentChanges.filter(d => {
-    const type = String(d.type || d.change_type || '').toLowerCase();
-    if (currentChangeFilter === 'added' && !type.includes('added')) return false;
-    if (currentChangeFilter === 'removed' && !type.includes('removed')) return false;
-    if (currentChangeFilter === 'changed' && (type.includes('added') || type.includes('removed'))) return false;
+    const cat = getDifferenceCategory(d);
+    if (currentChangeFilter === 'added' && cat !== 'added') return false;
+    if (currentChangeFilter === 'removed' && cat !== 'removed') return false;
+    if (currentChangeFilter === 'changed' && cat !== 'modified') return false;
     if (!q) return true;
     const oldText = formatDiffText(d.old_value ?? d.old_text ?? d.old_question ?? '');
     const newText = formatDiffText(d.new_value ?? d.new_text ?? d.new_question ?? '');
-    const hay = [type, d.message, d.description, d.question_number, oldText, newText].join(' ').toLowerCase();
+    const secNum = d.section_number ?? d.question_number ?? d.question ?? '';
+    const hay = [d.type, d.change_type, d.message, d.description, secNum, oldText, newText].join(' ').toLowerCase();
     return hay.includes(q);
   });
 
@@ -177,11 +188,12 @@ function renderChanges() {
 
   root.innerHTML = filtered.map(d => {
     const rawType = String(d.type || d.change_type || 'CHANGE');
-    const typeDisplay = rawType.replaceAll('_', ' ');
-    const tagClass = rawType.toLowerCase().includes('added') ? 'added' : rawType.toLowerCase().includes('removed') ? 'removed' : 'changed';
+    const typeDisplay = rawType.replaceAll('QUESTION_', 'SECTION_').replaceAll('_', ' ');
+    const cat = getDifferenceCategory(d);
+    const tagClass = cat === 'added' ? 'added' : cat === 'removed' ? 'removed' : 'changed';
     const oldVal = formatDiffText(d.old_value ?? d.old_text ?? d.old_question);
     const newVal = formatDiffText(d.new_value ?? d.new_text ?? d.new_question);
-    const qNum = d.question_number != null ? `Question #${esc(d.question_number)}` : (d.question != null ? `Question #${esc(d.question)}` : '');
+    const secNum = d.section_number != null ? `Section #${esc(d.section_number)}` : (d.question_number != null ? `Section #${esc(d.question_number)}` : (d.question != null ? `Section #${esc(d.question)}` : ''));
     const hasBoth = Boolean(oldVal && newVal);
     const hasAny = Boolean(oldVal || newVal);
 

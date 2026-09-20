@@ -23,8 +23,9 @@ class FormComparator:
                     "QUESTION_REMOVED",
                     question_number=question.number,
                     old_value=question.text,
-                    message=f"Question {question.number} was removed: {question.text}",
+                    message=f"Section {question.number} was removed: {question.text}",
                     confidence=1.0,
+                    category="removed",
                 )
             )
 
@@ -34,8 +35,9 @@ class FormComparator:
                     "QUESTION_ADDED",
                     question_number=question.number,
                     new_value=question.text,
-                    message=f"Question {question.number} was added: {question.text}",
+                    message=f"Section {question.number} was added: {question.text}",
                     confidence=1.0,
+                    category="added",
                 )
             )
 
@@ -54,8 +56,9 @@ class FormComparator:
                     "QUESTION_REORDERED",
                     old_value=[old.number for old, _, _, _ in ordered_matches],
                     new_value=[new.number for _, new, _, _ in ordered_matches],
-                    message="One or more matched questions changed sequence/order.",
+                    message="One or more matched document sections changed sequence/order.",
                     confidence=min(item[2] for item in ordered_matches),
+                    category="modified",
                 )
             )
 
@@ -72,8 +75,9 @@ class FormComparator:
                     question_number=question_number,
                     old_value=old.text,
                     new_value=new.text,
-                    message=f"Question matched with {score:.2f} similarity; text changed.",
+                    message=f"Content matched with {score:.2f} similarity; text changed.",
                     confidence=score,
+                    category="modified",
                 )
             )
 
@@ -93,8 +97,9 @@ class FormComparator:
                     question_number,
                     list(old_options),
                     list(new_options),
-                    f"Revision exposes {len(new_options)} options; original revision had no extractable options.",
+                    f"Revision exposes {len(new_options)} options/items; original revision had no extractable options.",
                     score,
+                    category="modified",
                 )
             )
         elif old_options and not new_options:
@@ -104,15 +109,16 @@ class FormComparator:
                     question_number,
                     list(old_options),
                     list(new_options),
-                    f"Original revision exposes {len(old_options)} options; revision has no extractable options.",
+                    f"Original revision exposes {len(old_options)} options/items; revision has no extractable options.",
                     score,
+                    category="modified",
                 )
             )
         else:
             if added:
-                differences.append(Difference("OPTIONS_ADDED", question_number, list(old_options), list(new_options), self._option_change_message("added", added), score))
+                differences.append(Difference("OPTIONS_ADDED", question_number, list(old_options), list(new_options), self._option_change_message("added", added), score, category="modified"))
             if removed:
-                differences.append(Difference("OPTIONS_REMOVED", question_number, list(old_options), list(new_options), self._option_change_message("removed", removed), score))
+                differences.append(Difference("OPTIONS_REMOVED", question_number, list(old_options), list(new_options), self._option_change_message("removed", removed), score, category="modified"))
 
         if old.field_type != new.field_type and (old.field_type or new.field_type):
             differences.append(
@@ -123,6 +129,7 @@ class FormComparator:
                     new_value=new.field_type,
                     message=f"Field type changed from {old.field_type} to {new.field_type}.",
                     confidence=score,
+                    category="modified",
                 )
             )
 
@@ -135,8 +142,9 @@ class FormComparator:
                     question_number=question_number,
                     old_value=list(old_children),
                     new_value=list(new_children),
-                    message="Child-question logic changed.",
+                    message="Sub-item / child logic changed.",
                     confidence=score,
+                    category="modified",
                 )
             )
 
@@ -148,8 +156,9 @@ class FormComparator:
                     question_number=new.number,
                     old_value=old.number,
                     new_value=new.number,
-                    message=f"Logical question moved from number {old.number} to {new.number}.",
+                    message=f"Logical section moved from number {old.number} to {new.number}.",
                     confidence=score,
+                    category="modified",
                 )
             )
         return differences
