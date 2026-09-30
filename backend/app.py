@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import mimetypes
 import os
+import re
 import secrets
 import tempfile
 from pathlib import Path
@@ -229,6 +231,13 @@ def _save_upload(
     return target
 
 
+def _clean_display_filename(name: str | None) -> str:
+    if not name:
+        return ""
+    # Strip random hex prefix: 16 hex chars followed by an underscore
+    return re.sub(r"^[0-9a-fA-F]{16}_", "", str(name))
+
+
 # =========================================================
 # PDF COMPARISON
 # =========================================================
@@ -295,6 +304,12 @@ async def compare(
             new_password or None,
             threshold,
         )
+
+        # Ensure filenames in payload do not leak the internal random hex prefix
+        for doc_key in ("old_document", "new_document"):
+            if doc_key in payload and isinstance(payload[doc_key], dict):
+                fn = payload[doc_key].get("filename", "")
+                payload[doc_key]["filename"] = _clean_display_filename(fn)
 
         # =================================================
         # EXISTING REPORTS
@@ -494,12 +509,24 @@ async def get_report(
         or "application/octet-stream",
     )
 
+    report_filename = f"comparison.{kind}"
+    json_path = RUNTIME_DIR / token / "comparison.json"
+    if json_path.is_file():
+        try:
+            report_data = json.loads(json_path.read_text(encoding="utf-8"))
+            old_name = report_data.get("old_document", {}).get("filename", "")
+            clean_name = _clean_display_filename(old_name)
+            pdf_stem = Path(clean_name).stem if clean_name else "pdf_name"
+            report_filename = f"{pdf_stem}_comparison_report.{kind}"
+        except Exception:
+            report_filename = f"pdf_name_comparison_report.{kind}"
+    else:
+        report_filename = f"pdf_name_comparison_report.{kind}"
+
     return FileResponse(
         p,
         media_type=media_type,
-        filename=(
-            f"comparison.{kind}"
-        ),
+        filename=report_filename,
     )
 
 

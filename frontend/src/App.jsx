@@ -93,7 +93,7 @@ export default function App() {
 
       <footer>
         <span>FormDiff • PDF Comparison & Difference Analysis</span>
-        <span>Intelligent structural and text revision comparison</span>
+        <span>&copy; Vibhor, Rishab and Sayan. All rights reserved.</span>
       </footer>
     </>
   );

@@ -39,12 +39,15 @@ def write_html_report(payload: dict, output_path: str | Path):
         for k, v in comparison["summary"].items()
     )
 
+    import re
     doc1 = payload["old_document"]
     doc2 = payload["new_document"]
+    fn1 = re.sub(r"^[0-9a-fA-F]{16}_", "", str(doc1.get("filename", "")))
+    fn2 = re.sub(r"^[0-9a-fA-F]{16}_", "", str(doc2.get("filename", "")))
     document_html = (
-        f"<p><strong>Original:</strong> {html.escape(doc1['filename'])} "
+        f"<p><strong>Original:</strong> {html.escape(fn1)} "
         f"({doc1['pages']} pages, {doc1['questions']} questions)</p>"
-        f"<p><strong>Revision:</strong> {html.escape(doc2['filename'])} "
+        f"<p><strong>Revision:</strong> {html.escape(fn2)} "
         f"({doc2['pages']} pages, {doc2['questions']} questions)</p>"
     )
 
@@ -62,6 +65,7 @@ table {{ border-collapse: collapse; width: 100%; margin-top: 20px; }}
 th, td {{ border: 1px solid #ddd; padding: 8px; vertical-align: top; text-align: left; }}
 th {{ background: #f5f5f5; }}
 code {{ background: #f3f3f3; padding: 2px 4px; }}
+footer {{ margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; }}
 </style>
 </head>
 <body>
@@ -77,6 +81,9 @@ code {{ background: #f3f3f3; padding: 2px 4px; }}
 <thead><tr><th>Type</th><th>Question</th><th>Original</th><th>Revision</th><th>Details</th><th>Match confidence</th></tr></thead>
 <tbody>{''.join(rows)}</tbody>
 </table>
+<footer>
+  <p>&copy; Vibhor, Rishab and Sayan. All rights reserved.</p>
+</footer>
 </body>
 </html>
 """

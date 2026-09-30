@@ -1,5 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 
+function cleanFileName(name) {
+  if (!name) return '';
+  return String(name).replace(/^[0-9a-fA-F]{16}_/, '').replace(/^[0-9a-fA-F]{8,32}_/, '');
+}
+
 function renderChunks(chunks, defaultText) {
   if (!chunks || !chunks.length) {
     return defaultText;
@@ -140,15 +145,15 @@ export default function SideBySideDocDiff({
       <div className="diff-panes-bar">
         <div className="pane-title-col left-pane-title">
           <span className="pane-badge original-badge">ORIGINAL</span>
-          <span className="pane-filename" title={oldDoc.filename}>
-            {oldDoc.filename || 'Original Document'}
+          <span className="pane-filename" title={cleanFileName(oldDoc.filename)}>
+            {cleanFileName(oldDoc.filename) || 'Original Document'}
           </span>
           <span className="pane-pages">({oldDoc.pages || 1} pages)</span>
         </div>
         <div className="pane-title-col right-pane-title">
           <span className="pane-badge revised-badge">REVISED</span>
-          <span className="pane-filename" title={newDoc.filename}>
-            {newDoc.filename || 'Revised Document'}
+          <span className="pane-filename" title={cleanFileName(newDoc.filename)}>
+            {cleanFileName(newDoc.filename) || 'Revised Document'}
           </span>
           <span className="pane-pages">({newDoc.pages || 1} pages)</span>
         </div>

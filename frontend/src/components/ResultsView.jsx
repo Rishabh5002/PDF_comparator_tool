@@ -20,6 +20,11 @@ function countTypes(changes) {
   return counts;
 }
 
+export function cleanFileName(name) {
+  if (!name) return '';
+  return String(name).replace(/^[0-9a-fA-F]{16}_/, '').replace(/^[0-9a-fA-F]{8,32}_/, '');
+}
+
 export default function ResultsView({
   payload,
   reports = {},
@@ -35,6 +40,10 @@ export default function ResultsView({
   const questionPairs = payload.question_pairs || [];
   const sideBySideDiff = payload.side_by_side_diff || [];
   const stats = countTypes(changes);
+
+  const cleanOld = cleanFileName(oldDoc.filename);
+  const cleanNew = cleanFileName(newDoc.filename);
+  const pdfStem = cleanOld ? cleanOld.replace(/\.[^/.]+$/, '') : 'pdf_name';
 
   const scrollToSideBySide = () => {
     const el = document.getElementById('sideBySideDiffSection');
@@ -52,7 +61,7 @@ export default function ResultsView({
           </button>
           <h2>Comparison Results</h2>
           <p className="results-doc-subtitle" id="docSubtitle">
-            Comparing "{oldDoc.filename || 'Original'}" ({oldDoc.pages || 1} pages) → "{newDoc.filename || 'Revised'}" ({newDoc.pages || 1} pages)
+            Comparing "{cleanOld || 'Original'}" ({oldDoc.pages || 1} pages) → "{cleanNew || 'Revised'}" ({newDoc.pages || 1} pages)
           </p>
         </div>
         <div className="results-quick-actions">
@@ -72,7 +81,7 @@ export default function ResultsView({
                   key={kind}
                   className="download-btn"
                   href={url}
-                  download={`comparison.${kind}`}
+                  download={`${pdfStem}_comparison_report.${kind}`}
                 >
                   <span className="fmt-pill">{kind.toUpperCase()}</span>
                 </a>

@@ -34,10 +34,18 @@ def payload():
 
 
 def test_pdf_and_excel_reporters_create_files(tmp_path):
+    import pymupdf
     p = write_pdf_report(payload(), tmp_path / "report.pdf")
     x = write_excel_report(payload(), tmp_path / "report.xlsx")
     assert p.exists() and p.stat().st_size > 0
     assert x.exists() and x.stat().st_size > 0
+
+    doc = pymupdf.open(str(p))
+    full_text = "".join(page.get_text() for page in doc)
+    doc.close()
+
+    assert "v1_comparison_report" in full_text
+    assert "Vibhor, Rishab and Sayan" in full_text
 
 
 def test_pdf_report_handles_overflowing_content(tmp_path):

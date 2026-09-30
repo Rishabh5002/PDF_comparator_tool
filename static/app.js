@@ -61,6 +61,7 @@ for (const zone of document.querySelectorAll('.dropzone')) {
 }
 
 function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function cleanFileName(name) { if (!name) return ''; return String(name).replace(/^[0-9a-fA-F]{16}_/, '').replace(/^[0-9a-fA-F]{8,32}_/, ''); }
 function fmtList(value) {
   if (!Array.isArray(value)) return esc(value || '—');
   if (!value.length) return '—';
@@ -234,19 +235,21 @@ function render(payload, reports) {
   ].map(x => `<div class="stat ${x[2]}"><div class="stat-header"><span class="stat-dot"></span><span>${x[0]}</span></div><strong>${x[1]}</strong></div>`).join('');
   
   const oldDoc = payload.old_document || {}, newDoc = payload.new_document || {};
-  document.getElementById('docSubtitle').textContent = `Comparing "${oldDoc.filename || 'Original'}" (${oldDoc.pages || 1} pages) → "${newDoc.filename || 'Revised'}" (${newDoc.pages || 1} pages)`;
+  const cleanOld = cleanFileName(oldDoc.filename);
+  const cleanNew = cleanFileName(newDoc.filename);
+  document.getElementById('docSubtitle').textContent = `Comparing "${cleanOld || 'Original'}" (${oldDoc.pages || 1} pages) → "${cleanNew || 'Revised'}" (${newDoc.pages || 1} pages)`;
   
   // Padded Document Details Cards (Emojiless)
   document.getElementById('documents').innerHTML = `
     <div class="doc-info-group">
       <div class="doc-info-card">
         <span class="doc-info-label">ORIGINAL REVISION</span>
-        <div class="doc-info-val">${esc(oldDoc.filename || '—')}</div>
+        <div class="doc-info-val">${esc(cleanOld || '—')}</div>
         <div class="doc-info-sub">${oldDoc.pages || 0} pages · ${oldDoc.questions || 0} questions ${oldDoc.encrypted ? '· Encrypted' : ''}</div>
       </div>
       <div class="doc-info-card">
         <span class="doc-info-label">REVISED REVISION</span>
-        <div class="doc-info-val">${esc(newDoc.filename || '—')}</div>
+        <div class="doc-info-val">${esc(cleanNew || '—')}</div>
         <div class="doc-info-sub">${newDoc.pages || 0} pages · ${newDoc.questions || 0} questions ${newDoc.encrypted ? '· Encrypted' : ''}</div>
       </div>
       <div class="doc-info-card summary-card">
@@ -273,9 +276,11 @@ function render(payload, reports) {
   `).join('');
   
   // Emojiless Export Buttons
-  document.getElementById('downloadLinks').innerHTML = Object.entries(reports).map(([kind, url]) => 
-    `<a class="download-btn" href="${esc(url)}"><span class="fmt-pill">${esc(kind.toUpperCase())}</span></a>`
-  ).join('');
+  const pdfStem = cleanOld ? cleanOld.replace(/\.[^/.]+$/, '') : 'pdf_name';
+  document.getElementById('downloadLinks').innerHTML = Object.entries(reports).map(([kind, url]) => {
+    const dlName = `${pdfStem}_comparison_report.${kind}`;
+    return `<a class="download-btn" href="${esc(url)}" download="${esc(dlName)}"><span class="fmt-pill">${esc(kind.toUpperCase())}</span></a>`;
+  }).join('');
 
   currentPairs = payload.question_pairs || [];
   document.getElementById('matchCount').textContent = `${currentPairs.filter(x => x.matched).length} matched · ${currentPairs.filter(x => !x.matched).length} unmatched`;

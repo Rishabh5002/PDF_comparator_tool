@@ -53,8 +53,14 @@ def test_api_compare_and_reports(tmp_path):
     assert "payload" in res
     assert "reports" in res
 
+    # Check that random hex token prefix is stripped on the frontend payload
+    assert res["payload"]["old_document"]["filename"] == "old.pdf"
+    assert res["payload"]["new_document"]["filename"] == "new.pdf"
+
     token = res["token"]
     for kind in ["json", "html", "pdf", "xlsx"]:
         rep = client.get(f"/api/report/{token}/{kind}")
         assert rep.status_code == 200
         assert len(rep.content) > 0
+        disposition = rep.headers.get("content-disposition", "")
+        assert f"old_comparison_report.{kind}" in disposition

@@ -1,5 +1,10 @@
 import React from 'react';
 
+function cleanFileName(name) {
+  if (!name) return '';
+  return String(name).replace(/^[0-9a-fA-F]{16}_/, '').replace(/^[0-9a-fA-F]{8,32}_/, '');
+}
+
 export default function OverviewDetails({ payload = {} }) {
   const oldDoc = payload.old_document || {};
   const newDoc = payload.new_document || {};
@@ -44,7 +49,7 @@ export default function OverviewDetails({ payload = {} }) {
             <div className="doc-info-group">
               <div className="doc-info-card">
                 <span className="doc-info-label">ORIGINAL REVISION</span>
-                <div className="doc-info-val">{oldDoc.filename || '—'}</div>
+                <div className="doc-info-val">{cleanFileName(oldDoc.filename) || '—'}</div>
                 <div className="doc-info-sub">
                   {oldDoc.pages || 0} pages · {oldDoc.sections ?? oldDoc.questions ?? 0} sections{' '}
                   {oldDoc.encrypted ? '· Encrypted' : ''}
@@ -52,7 +57,7 @@ export default function OverviewDetails({ payload = {} }) {
               </div>
               <div className="doc-info-card">
                 <span className="doc-info-label">REVISED REVISION</span>
-                <div className="doc-info-val">{newDoc.filename || '—'}</div>
+                <div className="doc-info-val">{cleanFileName(newDoc.filename) || '—'}</div>
                 <div className="doc-info-sub">
                   {newDoc.pages || 0} pages · {newDoc.sections ?? newDoc.questions ?? 0} sections{' '}
                   {newDoc.encrypted ? '· Encrypted' : ''}
